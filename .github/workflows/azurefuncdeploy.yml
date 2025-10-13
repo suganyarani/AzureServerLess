@@ -1,0 +1,49 @@
+name: Azure Function Deploy With CICD.
+on:
+  workflow_dispatch:
+
+permissions:
+      id-token: write
+      contents: read
+jobs: 
+  deploy-functions:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v2
+
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: "3.11"
+          architecture: x64
+
+      - name: Install required python modules
+        run: |
+            cd ./AzureFunctionDeploy
+            python -m pip install --upgrade pip
+            pip install --target="./.python_packages/lib/site-packages" -r requirements.txt 
+
+      - name: Zip the Azure Function Deploy folder
+        run: |
+          cd AzureFunctionDeploy
+          zip -r ../AzureFunctionDeploy.zip ./*
+
+      - name: 'Az CLI login'
+        uses: azure/login@v1
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+  
+      - name: 'Run az commands'
+        run: |
+          az account show
+          az group list
+
+      - name: 'Build and Deploy to Azure'
+        run: |
+          az functionapp deployment source config-zip \
+          --resource-group "8e7e1fff6789-rg-storage-dev" \
+          --name "azure-function-cicd" \
+          --src "./AzureFunctionDeploy.zip"

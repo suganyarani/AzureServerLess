@@ -2,7 +2,7 @@
 # More GitHub Actions for Azure: https://github.com/Azure/actions
 # More info on Python, GitHub Actions, and Azure Functions: https://aka.ms/python-webapps-actions
 
-name: Build and deploy Python project to Azure Function App - azure-function-cicd
+name: Evaluate Action and Deploy to Azure Function App
 
 on:
   push:
@@ -13,15 +13,13 @@ on:
 env:
   AZURE_FUNCTIONAPP_PACKAGE_PATH: '.' # set this to the path to your web app project, defaults to the repository root
   PYTHON_VERSION: '3.11' # set this to the python version to use (supports 3.6, 3.7, 3.8)
-
+  GENAI_EVALS_CONFIG_PATH: ${{ github.workspace }}/evaluate-config.json 
+  GENAI_EVALS_DATA_PATH: ${{ github.workspace }}/testdata/genai-testdata.json
 jobs:
   build:
     runs-on: ubuntu-latest
     permissions:
-      contents: read #This is required for actions/checkout
-    env: 
-      GENAI_EVALS_CONFIG_PATH: ${{ github.workspace }}/evaluate-config.json 
-      GENAI_EVALS_DATA_PATH: ${{ github.workspace }}/testdata/genai-testdata.json
+      contents: read #This is required for actions/checkout    
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4

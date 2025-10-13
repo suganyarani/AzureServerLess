@@ -74,6 +74,15 @@ jobs:
           client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_9A0E4792C5E44D14A97D3A37E1CE4D3B }}
           tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_A3BFE828FBA6459E9F6ECAE9B88011F6 }}
           subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_63FE40BDC05F400CA3E1655311435D8E }}
+      
+      - name: Run Evaluation
+        uses: microsoft/ai-agent-evals@v2-beta
+        with:
+          # Replace placeholders with values for your Azure AI Project
+          azure-ai-project-endpoint: ${{ secrets.PROJECT_ENDPOINT }}
+          deployment-name: ${{ secrets.MODEL_DEPLOYMENT_NAME }}
+          agent-ids: ${{ secrets.AGENT_ID }}
+          data-path: ${{ github.workspace }}/testdata/data.json
 
       - name: 'Deploy to Azure Functions'
         uses: Azure/functions-action@v1

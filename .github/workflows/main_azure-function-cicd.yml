@@ -88,20 +88,19 @@ jobs:
         run: |
           cat > ${{ env.GENAI_EVALS_CONFIG_PATH }} <<EOF
           { 
-            "data": "${{ github.workspace }}/testdata/genai-testdata.jsonl",
+            "data":"${{ github.workspace }}/testdata/genai-testdata.jsonl",
             "evaluators": {
-              "coherence": "CoherenceEvaluator",
-              "fluency": "FluencyEvaluator"
+              "coherence":"CoherenceEvaluator",
+              "fluency":"FluencyEvaluator"
             },
             "ai_model_configuration": {
               "type":"azure_openai",
               "azure_endpoint":"https://azure-ai-evaluation.cognitiveservices.azure.com/",
               "azure_deployment":"gpt-4o-mini",
-              "api_key": "${{ secrets.MODEL_API_KEY }}",
-              "api_version": "2024-12-01-preview"
+              "api_key":"${{ secrets.MODEL_API_KEY }}",
+              "api_version":"2024-12-01-preview"
             }
-          }
-          EOF 
+          }EOF 
       - name: Run AI Evaluation 
         id: run-ai-evaluation 
         uses: microsoft/genai-evals@main 

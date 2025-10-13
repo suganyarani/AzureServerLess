@@ -19,7 +19,9 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read #This is required for actions/checkout
-
+    env: 
+      GENAI_EVALS_CONFIG_PATH: ${{ github.workspace }}/evaluate-config.json 
+      GENAI_EVALS_DATA_PATH: ${{ github.workspace }}/testdata/genai-testdata.json
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -83,6 +85,30 @@ jobs:
           deployment-name: ${{ secrets.MODEL_DEPLOYMENT_NAME }}
           agent-ids: ${{ secrets.AGENT_ID }}
           data-path: ${{ github.workspace }}/testdata/data.json
+
+      - name: Write evaluate config 
+        run: | 
+          cat > ${{ env.GENAI_EVALS_CONFIG_PATH }} <<EOF 
+          { 
+            "data": "${{ env.GENAI_EVALS_DATA_PATH }}", 
+            "evaluators": { 
+              "coherence": "CoherenceEvaluator", 
+              "fluency": "FluencyEvaluator" 
+            }, 
+            "ai_model_configuration": { 
+              "type": "azure_openai", 
+              "azure_endpoint": "${{ secrets.MODEL_ENDPOINT }}", 
+              "azure_deployment": "${{ secrets.MODEL_DEPLOYMENT_NAME }}", 
+              "api_key": "${{ secrets.MODEL_API_KEY }}", 
+              "api_version": "${{ secrets.MODEL_VERSION }}" 
+            } 
+          } 
+          EOF 
+      - name: Run AI Evaluation 
+        id: run-ai-evaluation 
+        uses: microsoft/genai-evals@main 
+        with: 
+          evaluate-configuration: ${{ env.GENAI_EVALS_CONFIG_PATH }}    
 
       - name: 'Deploy to Azure Functions'
         uses: Azure/functions-action@v1

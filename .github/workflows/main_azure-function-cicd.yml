@@ -15,6 +15,7 @@ env:
   PYTHON_VERSION: '3.11' # set this to the python version to use (supports 3.6, 3.7, 3.8)
   GENAI_EVALS_CONFIG_PATH: ${{ github.workspace }}/evaluate-config.json 
   GENAI_EVALS_DATA_PATH: ${{ github.workspace }}/testdata/genai-testdata-new.jsonl
+  RUN_PYTHON_TESTS: ${{ secrets.RUN_PYTHON_TESTS }}  # set to 'TRUE' to run python tests
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -68,7 +69,13 @@ jobs:
           unzip release.zip
           rm release.zip
       - name: Run hello.py script
-        run: python hello.py ${{ github.workspace }}/testdata/genai-testdata-new.jsonl
+        id: run-hello
+        
+        if: ${{ env.RUN_PYTHON_TESTS == 'TRUE' }}
+        run: |
+          python hello.py ${{ github.workspace }}/testdata/genai-testdata-new.jsonl > output.txt
+          echo "result=$(cat output.txt)" >> $GITHUB_OUTPUT
+
       - name: Login to Azure
         uses: azure/login@v2
         with:
@@ -112,10 +119,11 @@ jobs:
           evaluate-configuration: ${{ env.GENAI_EVALS_CONFIG_PATH }}    
 
       - name: 'Deploy to Azure Functions'
+        if: ${{ env.RUN_PYTHON_TESTS == 'TRUE' && steps.run-hello.outputs.result == 'success' }}
         uses: Azure/functions-action@v1
         id: deploy-to-function
         with:
           app-name: 'azure-function-cicd'
           slot-name: 'Production'
-          package: ${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}
+          package: ${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}      
           

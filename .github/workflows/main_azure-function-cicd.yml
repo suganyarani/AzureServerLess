@@ -77,6 +77,7 @@ jobs:
           echo "result=$(cat output.txt)" >> $GITHUB_OUTPUT
 
       - name: Login to Azure
+        if: ${{ env.RUN_PYTHON_TESTS == 'TRUE' }}
         uses: azure/login@v2
         with:
           client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_9A0E4792C5E44D14A97D3A37E1CE4D3B }}
@@ -93,6 +94,7 @@ jobs:
       #     data-path: ${{ github.workspace }}/testdata/data.json
 
       - name: Write evaluate config 
+        if: ${{ env.RUN_PYTHON_TESTS == 'TRUE' }}
         run: |
           cat > ${{ env.GENAI_EVALS_CONFIG_PATH }} <<EOF
           {
@@ -113,6 +115,7 @@ jobs:
           EOF
  
       - name: Run AI Evaluation 
+        if: ${{ env.RUN_PYTHON_TESTS == 'TRUE' && steps.run-hello.outputs.result == 'success' }}
         id: run-ai-evaluation 
         uses: microsoft/genai-evals@main 
         with: 

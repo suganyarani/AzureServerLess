@@ -14,7 +14,7 @@ env:
   AZURE_FUNCTIONAPP_PACKAGE_PATH: '.' # set this to the path to your web app project, defaults to the repository root
   PYTHON_VERSION: '3.11' # set this to the python version to use (supports 3.6, 3.7, 3.8)
   GENAI_EVALS_CONFIG_PATH: ${{ github.workspace }}/evaluate-config.json 
-  GENAI_EVALS_DATA_PATH: ${{ github.workspace }}/testdata/genai-testdata.jsonl
+  GENAI_EVALS_DATA_PATH: ${{ github.workspace }}/testdata/genai-testdata-new.jsonl
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -68,7 +68,7 @@ jobs:
           unzip release.zip
           rm release.zip
       - name: Run hello.py script
-        run: python hello.py ${{ github.workspace }}/testdata/genai-testdata.jsonl
+        run: python hello.py ${{ github.workspace }}/testdata/genai-testdata-new.jsonl
       - name: Login to Azure
         uses: azure/login@v2
         with:
@@ -76,14 +76,14 @@ jobs:
           tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_A3BFE828FBA6459E9F6ECAE9B88011F6 }}
           subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_63FE40BDC05F400CA3E1655311435D8E }}
       
-      - name: Run Evaluation
-        uses: microsoft/ai-agent-evals@v2-beta
-        with:
-          # Replace placeholders with values for your Azure AI Project
-          azure-ai-project-endpoint: ${{ secrets.PROJECT_ENDPOINT }}
-          deployment-name: ${{ secrets.MODEL_DEPLOYMENT_NAME }}
-          agent-ids: ${{ secrets.AGENT_ID }}
-          data-path: ${{ github.workspace }}/testdata/data.json
+      # - name: Run Evaluation
+      #   uses: microsoft/ai-agent-evals@v2-beta
+      #   with:
+      #     # Replace placeholders with values for your Azure AI Project
+      #     azure-ai-project-endpoint: ${{ secrets.PROJECT_ENDPOINT }}
+      #     deployment-name: ${{ secrets.MODEL_DEPLOYMENT_NAME }}
+      #     agent-ids: ${{ secrets.AGENT_ID }}
+      #     data-path: ${{ github.workspace }}/testdata/data.json
 
       - name: Write evaluate config 
         run: |

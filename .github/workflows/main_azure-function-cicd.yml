@@ -122,13 +122,31 @@ jobs:
       #     evaluate-configuration: ${{ env.GENAI_EVALS_CONFIG_PATH }}    
   
       
-      - name: Publish results to Job Summary
+      
+      - name: Run unit tests (agents)
+        id: run_tests
         run: |
-          echo "## Test Results" >> "$GITHUB_STEP_SUMMARY"
-          echo "- Passed: 128" >> "$GITHUB_STEP_SUMMARY"
-          echo "- Failed: 2"   >> "$GITHUB_STEP_SUMMARY"
+          set -e
+          # Run discovery across the tests folder (includes test_httptrigger_v2.py)
+          python -m unittest discover -s tests -p "test_*.py" -v | tee unittest.log
+
+      - name: Publish short test summary to Actions tab
+        run: |
+          echo "## Python Unit Test Summary" >> "$GITHUB_STEP_SUMMARY"
           echo "" >> "$GITHUB_STEP_SUMMARY"
-          echo "See the full report below." >> "$GITHUB_STEP_SUMMARY"
+          echo "**Command:** \`python -m unittest discover -s tests -p \"test_*.py\" -v\`" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "### Tail of unittest log" >> "$GITHUB_STEP_SUMMARY"
+          echo '```text' >> "$GITHUB_STEP_SUMMARY"
+          tail -n 80 unittest.log >> "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload full logs (optional)
+        uses: actions/upload-artifact@v4
+        with:
+          name: unittest-logs
+          path: unittest.log
+
     
       - name: 'Deploy to Azure Functions'
         if: ${{ env.RUN_PYTHON_TESTS == 'TRUE' && steps.run-hello.outputs.result == 'success' }}

@@ -8,12 +8,15 @@ class TestHttpTriggerV2(unittest.TestCase):
 
     def test_hello_query_param(self):
         # Simulate GET /api/hello?name=Rani
+        
         req = func.HttpRequest(
             method="GET",
-            url="/api/function_http_trigger",
+            url="/api/hello",
             params={"name": "Rani"},
-            headers={}
+            headers={},
+            body=b""                  # <-- REQUIRED, bytes even for GET
         )
+
         resp = function_http_trigger(req)
 
         self.assertEqual(resp.status_code, 200)

@@ -128,7 +128,7 @@ jobs:
         run: |
           set -e
           # Run discovery across the tests folder (includes test_httptrigger_v2.py)
-          python -m unittest discover -s tests -p "test_*.py" -v | tee unittest.log
+          python -m unittest discover -s tests -p "test_*.py" -v > unittest.log
 
       - name: Publish short test summary to Actions tab
         run: |

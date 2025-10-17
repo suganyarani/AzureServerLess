@@ -74,7 +74,7 @@ jobs:
         if: ${{ env.RUN_PYTHON_TESTS == 'TRUE' }}
         run: |
           python hello.py ${{ github.workspace }}/testdata/genai-testdata-new.jsonl > output.txt
-          echo "result=$(cat output.txt)" >> $GITHUB_OUTPUT
+          # echo "result=$(cat output.txt)" >> $GITHUB_OUTPUT
 
       - name: Login to Azure
         if: ${{ env.RUN_PYTHON_TESTS == 'TRUE' }}

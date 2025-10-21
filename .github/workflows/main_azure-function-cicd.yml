@@ -45,7 +45,10 @@ jobs:
           source venv/bin/activate
 
       - name: Install dependencies
-        run: pip install -r requirements.txt
+        run: |
+          pip install --upgrade pip
+          pip install -r requirements.txt
+
 
       # Optional: Add step to run tests here
 
@@ -72,6 +75,22 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: python-app
+
+      # New step: validate required environment variables (fail early with clear errors)
+      - name: Validate required environment variables
+        run: |
+          set -euo pipefail
+          missing=0
+          for v in AZURE_OPENAI_ENDPOINT AZURE_OPENAI_API_KEY AZURE_OPENAI_DEPLOYMENT_NAME AZURE_OPENAI_API_VERSION storage_account_url storage_account_key cosmos_db_endpoint cosmos_db_key; do
+            if [ -z "${!v:-}" ]; then
+              echo "ERROR: required env var '$v' is not set or empty"
+              missing=1
+            fi
+          done
+          if [ "$missing" -eq 1 ]; then
+            echo "One or more required env vars are missing; failing early."
+            exit 1
+          fi    
 
       - name: Unzip artifact for deployment
         run: |

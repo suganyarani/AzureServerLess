@@ -132,8 +132,17 @@ jobs:
         id: run-ai-evaluation 
         uses: microsoft/genai-evals@main 
         with: 
-          evaluate-configuration: ${{ env.GENAI_EVALS_CONFIG_PATH }}    
-  
+          evaluate-configuration: ${{ env.GENAI_EVALS_CONFIG_PATH }}
+          azure_ai_project: |
+                {
+                  "name": "${{ env.AZURE_OPENAI_ENDPOINT }}",
+                  "description": "Evaluation project for Azure AI",
+                  "tags": {
+                    "owner": "Suganyarani",
+                    "environment": "dev"
+                  }
+                }
+
       
       
       - name: Run unit tests (agents)

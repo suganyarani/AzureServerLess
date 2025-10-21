@@ -16,15 +16,21 @@ env:
   GENAI_EVALS_CONFIG_PATH: ${{ github.workspace }}/evaluate-config.json 
   GENAI_EVALS_DATA_PATH: ${{ github.workspace }}/testdata/genai-testdata-new.jsonl
   RUN_PYTHON_TESTS: ${{ secrets.RUN_PYTHON_TESTS }}  # set to 'TRUE' to run python tests
-  # storage_account_url: ${{ secrets.AZURE_STORAGE_ACCOUNT_URL }}
-  # storage_account_key: ${{ secrets.AZURE_STORAGE_ACCOUNT_KEY }}
-  # cosmos_db_endpoint: ${{ secrets.COSMOS_DB_ENDPOINT }}
-  # cosmos_db_key: ${{ secrets.COSMOS_DB_KEY }}
-  # AZURE_OPENAI_ENDPOINT: ${{ secrets.MODEL_ENDPOINT }}
-  # AZURE_OPENAI_API_KEY: ${{ secrets.MODEL_API_KEY }}
-  # AZURE_OPENAI_DEPLOYMENT_NAME: ${{ secrets.MODEL_DEPLOYMENT_NAME }}
-  # AZURE_OPENAI_API_VERSION: ${{ secrets.MODEL_VERSION }}
-  # AZURE_OPENAI_MODEL: ${{ secrets.MODEL_DEPLOYMENT_NAME }}
+  storage_account_url: ${{ secrets.AZURE_STORAGE_ACCOUNT_URL }}
+  storage_account_key: ${{ secrets.AZURE_STORAGE_ACCOUNT_KEY }}
+  cosmos_db_endpoint: ${{ secrets.COSMOS_DB_ENDPOINT }}
+  cosmos_db_key: ${{ secrets.COSMOS_DB_KEY }}
+  AZURE_OPENAI_ENDPOINT: ${{ secrets.MODEL_ENDPOINT }}
+  AZURE_OPENAI_API_KEY: ${{ secrets.MODEL_API_KEY }}
+  AZURE_OPENAI_DEPLOYMENT_NAME: ${{ secrets.MODEL_DEPLOYMENT_NAME }}
+  AZURE_OPENAI_API_VERSION: ${{ secrets.MODEL_VERSION }}
+  AZURE_OPENAI_MODEL: ${{ secrets.MODEL_DEPLOYMENT_NAME }}
+  MODEL_ENDPOINT: ${{ secrets.MODEL_ENDPOINT }}
+  MODEL_API_KEY: ${{ secrets.MODEL_API_KEY }}
+  MODEL_DEPLOYMENT_NAME: ${{ secrets.MODEL_DEPLOYMENT_NAME }}
+  MODEL_VERSION: ${{ secrets.MODEL_VERSION }}
+  AZURE_SERVICE_ENDPOINT: ${{ secrets.AZURE_SERVICE_ENDPOINT }}
+  PROJECT_ENDPOINT: ${{ secrets.PROJECT_ENDPOINT }}
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -167,31 +173,31 @@ jobs:
 
       
       
-      # - name: Run unit tests (agents)
-      #   id: run_tests
-      #   run: |
-      #     set -e
-      #     # Run discovery across the tests folder (includes test_httptrigger_v2.py)
-      #     # source venv/bin/activate
-      #     # pip install -r requirements.txt
-      #     venv/bin/python -m unittest discover -s tests -p "test_*.py" -v > unittest.log 2>&1
+      - name: Run unit tests (agents)
+        id: run_tests
+        run: |
+          set -e
+          # Run discovery across the tests folder (includes test_httptrigger_v2.py)
+          # source venv/bin/activate
+          # pip install -r requirements.txt
+          python -m unittest discover -s tests -p "test_*.py" -v > unittest.log 2>&1
 
-      # - name: Publish short test summary to Actions tab
-      #   run: |
-      #     echo "## Python Unit Test Summary" >> "$GITHUB_STEP_SUMMARY"
-      #     echo "" >> "$GITHUB_STEP_SUMMARY"
-      #     echo "**Command:** \`python -m unittest discover -s tests -p \"test_*.py\" -v\`" >> "$GITHUB_STEP_SUMMARY"
-      #     echo "" >> "$GITHUB_STEP_SUMMARY"
-      #     echo "### Tail of unittest log" >> "$GITHUB_STEP_SUMMARY"
-      #     echo '```text' >> "$GITHUB_STEP_SUMMARY"
-      #     tail -n 80 unittest.log >> "$GITHUB_STEP_SUMMARY"
-      #     echo '```' >> "$GITHUB_STEP_SUMMARY"
+      - name: Publish short test summary to Actions tab
+        run: |
+          echo "## Python Unit Test Summary" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "**Command:** \`python -m unittest discover -s tests -p \"test_*.py\" -v\`" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "### Tail of unittest log" >> "$GITHUB_STEP_SUMMARY"
+          echo '```text' >> "$GITHUB_STEP_SUMMARY"
+          tail -n 80 unittest.log >> "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
 
-      # - name: Upload full logs (optional)
-      #   uses: actions/upload-artifact@v4
-      #   with:
-      #     name: unittest-logs
-      #     path: unittest.log
+      - name: Upload full logs (optional)
+        uses: actions/upload-artifact@v4
+        with:
+          name: unittest-logs
+          path: unittest.log
 
     
       - name: 'Deploy to Azure Functions'

@@ -129,7 +129,7 @@ jobs:
             "data": "${{ env.GENAI_EVALS_DATA_PATH }}",
             "evaluators": {
               "coherence": "CoherenceEvaluator",
-              "fluency": "FluencyEvaluator",             
+              "fluency": "FluencyEvaluator"            
             },
 
             "ai_model_configuration": {

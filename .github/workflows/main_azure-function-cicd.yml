@@ -61,7 +61,7 @@ jobs:
           name: python-app
           path: |
             release.zip
-           
+            !venv/
 
   deploy:
     runs-on: ubuntu-latest
@@ -110,7 +110,11 @@ jobs:
         
         if: ${{ env.RUN_PYTHON_TESTS == 'TRUE' }}
         run: |
-          venv/bin/python evaluation.py ${{ github.workspace }}/testdata/test_data.jsonl #> output.txt
+          python -m venv venv
+          source venv/bin/activate
+          pip install --upgrade pip
+          pip install -r requirements.txt
+          python evaluation.py ${{ github.workspace }}/testdata/test_data.jsonl #> output.txt
           # echo "result=$(cat output.txt)" >> $GITHUB_OUTPUT
           echo $GITHUB_OUTPUT
     

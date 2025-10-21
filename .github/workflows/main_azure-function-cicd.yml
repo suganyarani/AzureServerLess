@@ -101,7 +101,11 @@ jobs:
             "data": "${{ env.GENAI_EVALS_DATA_PATH }}",
             "evaluators": {
               "coherence": "CoherenceEvaluator",
-              "fluency": "FluencyEvaluator"
+              "fluency": "FluencyEvaluator",
+              "violence": "ViolenceEvaluator",
+              "sexual": "SexualEvaluator",
+              "self_harm": "SelfHarmEvaluator",
+              "hate_unfairness": "HateUnfairnessEvaluator",
             },
 
             "ai_model_configuration": {
@@ -114,12 +118,12 @@ jobs:
           }
           EOF
  
-      # - name: Run AI Evaluation 
-      #   if: ${{ env.RUN_PYTHON_TESTS == 'TRUE' && steps.run-hello.outputs.result == 'success' }}
-      #   id: run-ai-evaluation 
-      #   uses: microsoft/genai-evals@main 
-      #   with: 
-      #     evaluate-configuration: ${{ env.GENAI_EVALS_CONFIG_PATH }}    
+      - name: Run AI Evaluation 
+        if: ${{ env.RUN_PYTHON_TESTS == 'TRUE' && steps.run-hello.outputs.result == 'success' }}
+        id: run-ai-evaluation 
+        uses: microsoft/genai-evals@main 
+        with: 
+          evaluate-configuration: ${{ env.GENAI_EVALS_CONFIG_PATH }}    
   
       
       
@@ -130,7 +134,7 @@ jobs:
           # Run discovery across the tests folder (includes test_httptrigger_v2.py)
           source venv/bin/activate
           pip install -r requirements.txt
-          python -m unittest discover -s tests -p "test_*.py" -v > unittest.log
+          python -m unittest discover -s tests -p "test_*.py" -v > unittest.log 2>&1
 
       - name: Publish short test summary to Actions tab
         run: |

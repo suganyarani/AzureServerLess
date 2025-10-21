@@ -3,3 +3,10 @@
 # azure-monitor-opentelemetry
 
 azure-functions
+python-dotenv
+azure.cosmos
+pydantic
+rapidfuzz
+langchain
+langchain_openai
+langgraph

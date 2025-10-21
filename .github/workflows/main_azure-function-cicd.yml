@@ -16,15 +16,15 @@ env:
   GENAI_EVALS_CONFIG_PATH: ${{ github.workspace }}/evaluate-config.json 
   GENAI_EVALS_DATA_PATH: ${{ github.workspace }}/testdata/genai-testdata-new.jsonl
   RUN_PYTHON_TESTS: ${{ secrets.RUN_PYTHON_TESTS }}  # set to 'TRUE' to run python tests
-  # storage_account_url: ${{ secrets.AZURE_STORAGE_ACCOUNT_URL }}
-  # storage_account_key: ${{ secrets.AZURE_STORAGE_ACCOUNT_KEY }}
-  # cosmos_db_endpoint: ${{ secrets.COSMOS_DB_ENDPOINT }}
-  # cosmos_db_key: ${{ secrets.COSMOS_DB_KEY }}
-  # AZURE_OPENAI_ENDPOINT: ${{ secrets.MODEL_ENDPOINT }}
-  # AZURE_OPENAI_API_KEY: ${{ secrets.MODEL_API_KEY }}
-  # AZURE_OPENAI_DEPLOYMENT_NAME: ${{ secrets.MODEL_DEPLOYMENT_NAME }}
-  # AZURE_OPENAI_API_VERSION: ${{ secrets.MODEL_VERSION }}
-  # AZURE_OPENAI_MODEL: ${{ secrets.MODEL_DEPLOYMENT_NAME }}
+  storage_account_url: ${{ secrets.AZURE_STORAGE_ACCOUNT_URL }}
+  storage_account_key: ${{ secrets.AZURE_STORAGE_ACCOUNT_KEY }}
+  cosmos_db_endpoint: ${{ secrets.COSMOS_DB_ENDPOINT }}
+  cosmos_db_key: ${{ secrets.COSMOS_DB_KEY }}
+  AZURE_OPENAI_ENDPOINT: ${{ secrets.MODEL_ENDPOINT }}
+  AZURE_OPENAI_API_KEY: ${{ secrets.MODEL_API_KEY }}
+  AZURE_OPENAI_DEPLOYMENT_NAME: ${{ secrets.MODEL_DEPLOYMENT_NAME }}
+  AZURE_OPENAI_API_VERSION: ${{ secrets.MODEL_VERSION }}
+  AZURE_OPENAI_MODEL: ${{ secrets.MODEL_DEPLOYMENT_NAME }}
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -129,11 +129,7 @@ jobs:
             "data": "${{ env.GENAI_EVALS_DATA_PATH }}",
             "evaluators": {
               "coherence": "CoherenceEvaluator",
-              "fluency": "FluencyEvaluator",
-              "violence": "ViolenceEvaluator",
-              "sexual": "SexualEvaluator",
-              "self_harm": "SelfHarmEvaluator",
-              "hate_unfairness": "HateUnfairnessEvaluator"
+              "fluency": "FluencyEvaluator",             
             },
 
             "ai_model_configuration": {
@@ -146,21 +142,21 @@ jobs:
           }
           EOF
  
-      # - name: Run AI Evaluation 
-      #   if: ${{ env.RUN_PYTHON_TESTS == 'TRUE' && steps.run-hello.outputs.result == 'success' }}
-      #   id: run-ai-evaluation 
-      #   uses: microsoft/genai-evals@main 
-      #   with: 
-      #     evaluate-configuration: ${{ env.GENAI_EVALS_CONFIG_PATH }}
-      #     azure_ai_project: |
-      #           {
-      #             "name": "${{ env.AZURE_OPENAI_ENDPOINT }}",
-      #             "description": "Evaluation project for Azure AI",
-      #             "tags": {
-      #               "owner": "Suganyarani",
-      #               "environment": "dev"
-      #             }
-      #           }
+      - name: Run AI Evaluation 
+        if: ${{ env.RUN_PYTHON_TESTS == 'TRUE' && steps.run-hello.outputs.result == 'success' }}
+        id: run-ai-evaluation 
+        uses: microsoft/genai-evals@main 
+        with: 
+          evaluate-configuration: ${{ env.GENAI_EVALS_CONFIG_PATH }}
+          # azure_ai_project: |
+          #       {
+          #         "name": "${{ env.AZURE_OPENAI_ENDPOINT }}",
+          #         "description": "Evaluation project for Azure AI",
+          #         "tags": {
+          #           "owner": "Suganyarani",
+          #           "environment": "dev"
+          #         }
+          #       }
 
       
       

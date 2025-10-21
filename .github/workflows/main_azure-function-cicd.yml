@@ -127,21 +127,21 @@ jobs:
           }
           EOF
  
-      - name: Run AI Evaluation 
-        if: ${{ env.RUN_PYTHON_TESTS == 'TRUE' && steps.run-hello.outputs.result == 'success' }}
-        id: run-ai-evaluation 
-        uses: microsoft/genai-evals@main 
-        with: 
-          evaluate-configuration: ${{ env.GENAI_EVALS_CONFIG_PATH }}
-          azure_ai_project: |
-                {
-                  "name": "${{ env.AZURE_OPENAI_ENDPOINT }}",
-                  "description": "Evaluation project for Azure AI",
-                  "tags": {
-                    "owner": "Suganyarani",
-                    "environment": "dev"
-                  }
-                }
+      # - name: Run AI Evaluation 
+      #   if: ${{ env.RUN_PYTHON_TESTS == 'TRUE' && steps.run-hello.outputs.result == 'success' }}
+      #   id: run-ai-evaluation 
+      #   uses: microsoft/genai-evals@main 
+      #   with: 
+      #     evaluate-configuration: ${{ env.GENAI_EVALS_CONFIG_PATH }}
+      #     azure_ai_project: |
+      #           {
+      #             "name": "${{ env.AZURE_OPENAI_ENDPOINT }}",
+      #             "description": "Evaluation project for Azure AI",
+      #             "tags": {
+      #               "owner": "Suganyarani",
+      #               "environment": "dev"
+      #             }
+      #           }
 
       
       

@@ -32,3 +32,8 @@ pytesseract
 python-dateutil         
 python-dotenv           
 requests
+azure-ai-projects 
+azure-ai-evaluation
+azure-ai-agents
+azure-identity-broker
+pandas

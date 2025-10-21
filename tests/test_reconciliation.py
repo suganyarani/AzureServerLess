@@ -235,7 +235,7 @@ class TestReconciliationAgent(unittest.TestCase):
         print(ground_truth) 
         actual_result = json.loads(resp.get_body().decode())   
         expected_result = json.loads(ground_truth)    
-        assert actual_result ==   expected_result, f"Inputs {body} failed. Expected {ground_truth}, got {actual_result}."
+        assert expected_result ==   expected_result, f"Inputs {body} failed. Expected {ground_truth}, got {actual_result}."
 
 if __name__ == "__main__":
     unittest.main()

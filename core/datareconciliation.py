@@ -1,7 +1,7 @@
 
 from langchain_openai import AzureChatOpenAI
 from azure.core.credentials import AzureKeyCredential
-from langchain.schema import SystemMessage, HumanMessage
+from langchain_core.messages import SystemMessage, HumanMessage #sudha
 from langchain_core.prompts import ChatPromptTemplate, PromptTemplate
 from dotenv import load_dotenv
 from core.data_access import insert_data,get_data

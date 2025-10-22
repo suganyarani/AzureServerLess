@@ -111,33 +111,33 @@ jobs:
           tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_A3BFE828FBA6459E9F6ECAE9B88011F6 }}
           subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_63FE40BDC05F400CA3E1655311435D8E }}
 
-      # - name: Run evaluation.py script
-      #   id: run-eval
+      - name: Run evaluation.py script
+        id: run-eval
         
-      #   if: ${{ env.RUN_PYTHON_TESTS == 'TRUE' }}
-      #   run: |
-      #     python -m venv venv
-      #     source venv/bin/activate
-      #     pip install --upgrade pip
-      #     pip install -r requirements.txt
-      #     # python evaluation.py ${{ github.workspace }}/testdata/test_data.jsonl #> output.txt
-      #     # echo "result=$(cat output.txt)" >> $GITHUB_OUTPUT
-      #     # echo $GITHUB_OUTPUT
-      #     # Rerun evaluation and capture full stdout/stderr
-      #     python evaluation.py  ${{ github.workspace }}/testdata/test_data.jsonl > eval_output.txt 2>&1 || true
+        if: ${{ env.RUN_PYTHON_TESTS == 'TRUE' }}
+        run: |
+          python -m venv venv
+          source venv/bin/activate
+          pip install --upgrade pip
+          pip install -r requirements.txt
+          # python evaluation.py ${{ github.workspace }}/testdata/test_data.jsonl #> output.txt
+          # echo "result=$(cat output.txt)" >> $GITHUB_OUTPUT
+          # echo $GITHUB_OUTPUT
+          # Rerun evaluation and capture full stdout/stderr
+          python evaluation.py  ${{ github.workspace }}/testdata/test_data.jsonl > eval_output.txt 2>&1 || true
 
-      #     # Publish to the Actions job summary (visible in the UI after job completes)
-      #     echo "## Evaluation Results" >> "$GITHUB_STEP_SUMMARY"
-      #     echo '```' >> "$GITHUB_STEP_SUMMARY"
-      #     cat eval_output.txt >> "$GITHUB_STEP_SUMMARY"
-      #     echo '```' >> "$GITHUB_STEP_SUMMARY"
+          # Publish to the Actions job summary (visible in the UI after job completes)
+          echo "## Evaluation Results" >> "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
+          cat eval_output.txt >> "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
 
-      #     # Expose the evaluation output as a step output (multiline-safe) for downstream jobs
-      #     {
-      #       echo "evaluation_result<<EOF"
-      #       cat eval_output.txt
-      #       echo "EOF"
-      #     } >> "$GITHUB_OUTPUT"
+          # Expose the evaluation output as a step output (multiline-safe) for downstream jobs
+          {
+            echo "evaluation_result<<EOF"
+            cat eval_output.txt
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
     
       
       # - name: Run Evaluation
@@ -199,52 +199,29 @@ jobs:
             # Optional: upgrade pip or install missing packages if needed
             pip install --upgrade pip
             pip install -r requirements.txt
-            python -m unittest discover -s tests -p "*_test.py" -v > unittest.log 2>&1 || true
-
-            # Extract summary info
-            tests_run=$(grep -Eo '[0-9]+ tests' unittest.log | awk '{print $1}' | tail -1)
-            failures=$(grep -Eo '[0-9]+ failures' unittest.log | awk '{print $1}' | tail -1)
-            errors=$(grep -Eo '[0-9]+ errors' unittest.log | awk '{print $1}' | tail -1)
-            skipped=$(grep -Eo '[0-9]+ skipped' unittest.log | awk '{print $1}' | tail -1)
-
-            # Write to GitHub Actions summary tab
-            {
-              echo "## 🧪 Unit Test Summary"
-              echo ""
-              echo "| Metric   | Count |"
-              echo "|----------|-------|"
-              echo "| Tests Run | ${tests_run:-0} |"
-              echo "| Failures  | ${failures:-0} |"
-              echo "| Errors    | ${errors:-0} |"
-              echo "| Skipped   | ${skipped:-0} |"
-            } >> $GITHUB_STEP_SUMMARY
-
+            python -m unittest discover -s tests -p "*_test.py" -v > unittest.log 2>&1 || true 
             exit 0
             fi
-            # python -m venv venv
-            # source venv/bin/activate
-            # pip install --upgrade pip      
-            # pip install -r requirements.txt
-            # python -m unittest discover -s tests -p "test_*.py" -v > unittest.log 2>&1
             
-      
-
       - name: Publish short test summary to Actions tab
-        run: |
-          
-          echo "Tests run: ${{ steps.run_tests.outputs.tests_run }}"
-          echo "Failures: ${{ steps.run_tests.outputs.failures }}"
-          echo "Errors: ${{ steps.run_tests.outputs.errors }}"
-          echo "Skipped: ${{ steps.run_tests.outputs.skipped }}"
- 
-          # echo "## Python Unit Test Summary" >> "$GITHUB_STEP_SUMMARY"
-          # echo "" >> "$GITHUB_STEP_SUMMARY"
-          # echo "**Command:** \`python -m unittest discover -s tests -p \"test_*.py\" -v\`" >> "$GITHUB_STEP_SUMMARY"
-          # echo "" >> "$GITHUB_STEP_SUMMARY"
-          # echo "### Tail of unittest log" >> "$GITHUB_STEP_SUMMARY"
-          # echo '```text' >> "$GITHUB_STEP_SUMMARY"
-          # tail -n 80 unittest.log >> "$GITHUB_STEP_SUMMARY"
-          # echo '```' >> "$GITHUB_STEP_SUMMARY"
+        run: |          
+          # Extract summary info
+          tests_run= ${{ steps.run_tests.outputs.tests_run }}
+          failures= ${{ steps.run_tests.outputs.failures }}
+          errors= ${{ steps.run_tests.outputs.errors }}
+          skipped= ${{ steps.run_tests.outputs.skipped }}
+
+          # Write to GitHub Actions summary tab
+          {
+            echo "## 🧪 Unit Test Summary"
+            echo ""
+            echo "| Metric   | Count |"
+            echo "|----------|-------|"
+            echo "| Tests Run | ${tests_run:-0} |"
+            echo "| Failures  | ${failures:-0} |"
+            echo "| Errors    | ${errors:-0} |"
+            echo "| Skipped   | ${skipped:-0} |"
+          } >> $GITHUB_STEP_SUMMARY
 
       - name: Upload full logs (optional)
         uses: actions/upload-artifact@v4

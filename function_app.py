@@ -1,8 +1,8 @@
 import azure.functions as func
 import logging
 import json
-# from core.model import AgentState
-# from core.datareconciliation import data_reconciliation
+from core.model import AgentState
+from core.datareconciliation import data_reconciliation
 
 app = func.FunctionApp(http_auth_level=func.AuthLevel.ANONYMOUS)
 
@@ -26,7 +26,7 @@ def health_check(req: func.HttpRequest) -> func.HttpResponse:
              "This HTTP triggered function executed successfully. Pass a name in the query string or in the request body for a personalized response.",
              status_code=200
         )
-"""
+
 @app.route(route="reconcile", methods=["POST"])
 def reconcile(req: func.HttpRequest) -> func.HttpResponse:
     logging.info('Reconciliation Function Invoked')
@@ -52,4 +52,3 @@ def reconcile(req: func.HttpRequest) -> func.HttpResponse:
              "Please pass valid JSON object in the request body",
              status_code=400
         )
-"""        

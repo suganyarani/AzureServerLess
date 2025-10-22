@@ -6,6 +6,20 @@ from function_app import reconcile  # import the v2 handler directly
 from dotenv import load_dotenv
 load_dotenv()
 
+
+def remove_fields(obj, fields_to_remove):
+    if isinstance(obj, dict):
+        return {
+            key: remove_fields(value, fields_to_remove)
+            for key, value in obj.items()
+            if key not in fields_to_remove
+        }
+    elif isinstance(obj, list):
+        return [remove_fields(item, fields_to_remove) for item in obj]
+    else:
+        return obj
+
+
 class TestReconciliationAgent(unittest.TestCase):
 
     def test_reconciliation(self):
@@ -224,7 +238,7 @@ class TestReconciliationAgent(unittest.TestCase):
         # self.assertEqual(resp.status_code, 200)
         # self.assertIn("Hello! ani. This HTTP triggered function executed successfully.", resp.get_body().decode())
         
-        with open(r"tests/gt.json", "r",encoding="utf-8") as f:
+        with open(r"testdata/gt.json", "r",encoding="utf-8") as f:
             # ground_truth = json.load(f)
             ground_truth = f.read()
  
@@ -234,16 +248,18 @@ class TestReconciliationAgent(unittest.TestCase):
         # print(resp.get_body().decode()) 
         # print(ground_truth) 
         actual_result = json.loads(resp.get_body().decode())   
+        # remove_fields(actual_result,["_rid","_self","_etag","_attachments","_ts"])
         expected_result = json.loads(ground_truth)  
-        dict=  {
-            "query":json.dumps(body),
-            "context":"Extraction",
-            "ground_truth":ground_truth,
-            "response":resp.get_body().decode()           
-        }
-        print(json.dumps(dict))
-        print(dict)
-        assert expected_result ==   expected_result, f"Inputs {body} failed. Expected {ground_truth}, got {actual_result}."
+        # dict=  {
+        #     "query":json.dumps(body),
+        #     "context":"Extraction",
+        #     "ground_truth":ground_truth,
+        #     "response":resp.get_body().decode()           
+        # }
+        # print(json.dumps(dict))
+        print("Expected:\n", expected_result["reconciled_data"])    
+        print("Actual :\n", actual_result["reconciled_data"])    
+        assert expected_result["reconciled_data"] == actual_result["reconciled_data"], f"Inputs {body} failed. Expected {expected_result["reconciled_data"]}, got {actual_result["reconciled_data"]}."
 
 if __name__ == "__main__":
     unittest.main()

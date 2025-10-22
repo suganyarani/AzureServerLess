@@ -200,6 +200,25 @@ jobs:
             pip install --upgrade pip
             pip install -r requirements.txt
             python -m unittest discover -s tests -p "*_test.py" -v > unittest.log 2>&1 || true
+
+            # Extract summary info
+            tests_run=$(grep -Eo '[0-9]+ tests' unittest.log | awk '{print $1}' | tail -1)
+            failures=$(grep -Eo '[0-9]+ failures' unittest.log | awk '{print $1}' | tail -1)
+            errors=$(grep -Eo '[0-9]+ errors' unittest.log | awk '{print $1}' | tail -1)
+            skipped=$(grep -Eo '[0-9]+ skipped' unittest.log | awk '{print $1}' | tail -1)
+
+            # Write to GitHub Actions summary tab
+            {
+              echo "## 🧪 Unit Test Summary"
+              echo ""
+              echo "| Metric   | Count |"
+              echo "|----------|-------|"
+              echo "| Tests Run | ${tests_run:-0} |"
+              echo "| Failures  | ${failures:-0} |"
+              echo "| Errors    | ${errors:-0} |"
+              echo "| Skipped   | ${skipped:-0} |"
+            } >> $GITHUB_STEP_SUMMARY
+
             exit 0
             fi
             # python -m venv venv
@@ -207,6 +226,8 @@ jobs:
             # pip install --upgrade pip      
             # pip install -r requirements.txt
             # python -m unittest discover -s tests -p "test_*.py" -v > unittest.log 2>&1
+            
+      
 
       - name: Publish short test summary to Actions tab
         run: |

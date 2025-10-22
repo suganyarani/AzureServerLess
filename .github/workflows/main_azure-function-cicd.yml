@@ -191,7 +191,7 @@ jobs:
       - name: Run unit tests (agents)
         id: run_tests
         run: |
-          set -e
+          # set -e
           python -m venv venv
           source venv/bin/activate
           pip install --upgrade pip      

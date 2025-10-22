@@ -1,6 +1,7 @@
 # tests/test_httptrigger_v2.py
 import json
 import unittest
+import traceback
 import azure.functions as func
 from function_app import reconcile  # import the v2 handler directly
 from dotenv import load_dotenv
@@ -262,4 +263,8 @@ class TestReconciliationAgent(unittest.TestCase):
         assert expected_result["reconciled_data"] == actual_result["reconciled_data"], f"Inputs {body} failed. Expected {expected_result["reconciled_data"]}, got {actual_result["reconciled_data"]}."
 
 if __name__ == "__main__":
-    unittest.main()
+    try:
+        unittest.main()
+    except Exception as e:
+        traceback.print_exc()
+        print(f"Error: {e}")

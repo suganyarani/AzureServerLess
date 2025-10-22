@@ -262,9 +262,9 @@ class TestReconciliationAgent(unittest.TestCase):
         print("Actual :\n", actual_result["reconciled_data"])   #expected_result["reconciled_data"] == actual_result["reconciled_data"] 
         assert True, f"Inputs {body} failed. Expected {expected_result["reconciled_data"]}, got {actual_result["reconciled_data"]}."
 
-if __name__ == "__main__":
-    try:
-        unittest.main()
-    except Exception as e:
-        traceback.print_exc()
-        print(f"Error: {e}")
+# if __name__ == "__main__":
+#     try:
+#         unittest.main()
+#     except Exception as e:
+#         traceback.print_exc()
+#         print(f"Error: {e}")

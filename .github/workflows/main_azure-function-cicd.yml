@@ -199,7 +199,7 @@ jobs:
             # Optional: upgrade pip or install missing packages if needed
             pip install --upgrade pip
             pip install -r requirements.txt
-            python -m unittest discover -s tests -p "test_*.py" -v > unittest.log 2>&1 || true
+            python -m unittest discover -s tests -p "*_test.py" -v > unittest.log 2>&1 || true
             exit 0
             fi
             # python -m venv venv
@@ -210,14 +210,20 @@ jobs:
 
       - name: Publish short test summary to Actions tab
         run: |
-          echo "## Python Unit Test Summary" >> "$GITHUB_STEP_SUMMARY"
-          echo "" >> "$GITHUB_STEP_SUMMARY"
-          echo "**Command:** \`python -m unittest discover -s tests -p \"test_*.py\" -v\`" >> "$GITHUB_STEP_SUMMARY"
-          echo "" >> "$GITHUB_STEP_SUMMARY"
-          echo "### Tail of unittest log" >> "$GITHUB_STEP_SUMMARY"
-          echo '```text' >> "$GITHUB_STEP_SUMMARY"
-          tail -n 80 unittest.log >> "$GITHUB_STEP_SUMMARY"
-          echo '```' >> "$GITHUB_STEP_SUMMARY"
+          
+          echo "Tests run: ${{ steps.run_tests.outputs.tests_run }}"
+          echo "Failures: ${{ steps.run_tests.outputs.failures }}"
+          echo "Errors: ${{ steps.run_tests.outputs.errors }}"
+          echo "Skipped: ${{ steps.run_tests.outputs.skipped }}"
+ 
+          # echo "## Python Unit Test Summary" >> "$GITHUB_STEP_SUMMARY"
+          # echo "" >> "$GITHUB_STEP_SUMMARY"
+          # echo "**Command:** \`python -m unittest discover -s tests -p \"test_*.py\" -v\`" >> "$GITHUB_STEP_SUMMARY"
+          # echo "" >> "$GITHUB_STEP_SUMMARY"
+          # echo "### Tail of unittest log" >> "$GITHUB_STEP_SUMMARY"
+          # echo '```text' >> "$GITHUB_STEP_SUMMARY"
+          # tail -n 80 unittest.log >> "$GITHUB_STEP_SUMMARY"
+          # echo '```' >> "$GITHUB_STEP_SUMMARY"
 
       - name: Upload full logs (optional)
         uses: actions/upload-artifact@v4

@@ -26,10 +26,10 @@ class TestHealthCheck(unittest.TestCase):
         self.assertEqual(resp.status_code, 200)
         self.assertIn("Hello! Test. This HTTP triggered function executed successfully.", resp.get_body().decode())
 
-if __name__ == "__main__":
-    try:
-        unittest.main()
-    except Exception as e:
-        traceback.print_exc()
-        print(f"Error: {e}")
+# if __name__ == "__main__":
+#     try:
+#         unittest.main()
+#     except Exception as e:
+#         traceback.print_exc()
+#         print(f"Error: {e}")
          

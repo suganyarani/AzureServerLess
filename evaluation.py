@@ -172,10 +172,10 @@ def main(arg):
             print(f"Error details: {e}")
         
         
-        result = "success"  # do your computation here
-        # Write a step output for GitHub Actions
-        with open(os.environ["GITHUB_OUTPUT"], "a") as f:
-            print(f"result={consolidated_metrics}", file=f)
+        # result = "success"  # do your computation here
+        # # Write a step output for GitHub Actions
+        # with open(os.environ["GITHUB_OUTPUT"], "a") as f:
+        #     print(f"result={consolidated_metrics}", file=f)
 
     except Exception as e:
         print("failed")

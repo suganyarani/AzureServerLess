@@ -197,7 +197,8 @@ jobs:
             echo "Using venv uploaded from build job"
             source venv/bin/activate
             # Optional: upgrade pip or install missing packages if needed
-            # pip install --upgrade pip
+            pip install --upgrade pip
+            pip install -r requirements.txt
             python -m unittest discover -s tests -p "test_*.py" -v > unittest.log 2>&1 || true
             exit 0
             fi

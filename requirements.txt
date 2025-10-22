@@ -37,3 +37,4 @@ azure-ai-evaluation
 azure-ai-agents
 azure-identity-broker
 pandas
+azure.ai.contentsafety

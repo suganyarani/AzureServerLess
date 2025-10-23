@@ -233,6 +233,13 @@ class TestReconciliationAgent(unittest.TestCase):
             headers={},
             body=json.dumps(body).encode("utf-8")                 # <-- REQUIRED, bytes even for GET
         )
+        # function_name="reconcile"
+        # allowed_functions = {"reconcile", "process", "validate"}
+        # if function_name in allowed_functions:
+        #     function_to_call = getattr(func, function_name)
+        #     resp = function_to_call(req)
+        # else:
+        #     raise ValueError(f"Function '{function_name}' is not allowed.")
 
         resp = reconcile(req)
 

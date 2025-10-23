@@ -111,34 +111,6 @@ jobs:
           tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_A3BFE828FBA6459E9F6ECAE9B88011F6 }}
           subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_63FE40BDC05F400CA3E1655311435D8E }}
 
-      - name: Run evaluation.py script
-        id: run-eval
-        
-        if: ${{ env.RUN_PYTHON_TESTS == 'TRUE' }}
-        run: |
-          python -m venv venv
-          source venv/bin/activate
-          pip install --upgrade pip
-          pip install -r requirements.txt
-          # python evaluation.py ${{ github.workspace }}/testdata/test_data.jsonl #> output.txt
-          # echo "result=$(cat output.txt)" >> $GITHUB_OUTPUT
-          # echo $GITHUB_OUTPUT
-          # Rerun evaluation and capture full stdout/stderr
-          python evaluation.py  ${{ github.workspace }}/testdata/test_data.jsonl > eval_output.txt 2>&1 || true
-
-          # Publish to the Actions job summary (visible in the UI after job completes)
-          echo "## Evaluation Results" >> "$GITHUB_STEP_SUMMARY"
-          echo '```' >> "$GITHUB_STEP_SUMMARY"
-          cat eval_output.txt >> "$GITHUB_STEP_SUMMARY"
-          echo '```' >> "$GITHUB_STEP_SUMMARY"
-
-          # Expose the evaluation output as a step output (multiline-safe) for downstream jobs
-          {
-            echo "evaluation_result<<EOF"
-            cat eval_output.txt
-            echo "EOF"
-          } >> "$GITHUB_OUTPUT"
-    
       
       # - name: Run Evaluation
       #   uses: microsoft/ai-agent-evals@v2-beta
@@ -219,6 +191,35 @@ jobs:
           ERRORS: ${{ steps.run_tests.outputs.errors }}
           SKIPPED: ${{ steps.run_tests.outputs.skipped }}
 
+      - name: Run evaluation.py script
+        id: run-eval
+        
+        if: ${{ env.RUN_PYTHON_TESTS == 'TRUE' }}
+        run: |
+          python -m venv venv
+          source venv/bin/activate
+          pip install --upgrade pip
+          pip install -r requirements.txt
+          # python evaluation.py ${{ github.workspace }}/testdata/test_data.jsonl #> output.txt
+          # echo "result=$(cat output.txt)" >> $GITHUB_OUTPUT
+          # echo $GITHUB_OUTPUT
+          # Rerun evaluation and capture full stdout/stderr
+          python evaluation.py  ${{ github.workspace }}/testdata/test_data.jsonl > eval_output.txt 2>&1 || true
+
+          # Publish to the Actions job summary (visible in the UI after job completes)
+          echo "## Evaluation Results" >> "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
+          cat eval_output.txt >> "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
+
+          # Expose the evaluation output as a step output (multiline-safe) for downstream jobs
+          {
+            echo "evaluation_result<<EOF"
+            cat eval_output.txt
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"   
+          
+
 
       - name: Upload full logs (optional)
         uses: actions/upload-artifact@v4
@@ -228,7 +229,7 @@ jobs:
 
     
       - name: 'Deploy to Azure Functions'
-        if: ${{ env.RUN_PYTHON_TESTS == 'TRUE' }}
+        if: ${{ env.RUN_PYTHON_TESTS == 'TRUE' && steps.run_tests.outputs.failures == 0 }}
         uses: Azure/functions-action@v1
         id: deploy-to-function
         with:

@@ -37,4 +37,7 @@ azure-ai-evaluation
 azure-ai-agents
 azure-identity-broker
 pandas
-azure.ai.contentsafety
+# azure.ai.contentsafety
+parameterized
+openpyxl
+jinja2

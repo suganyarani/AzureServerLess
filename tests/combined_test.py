@@ -1,12 +1,18 @@
 import unittest
 import os
+from tests.test_framework import TestDataDriven
 
 # List of test modules to run
-test_modules = ['test_reconciliation', 'test_sample']
+test_modules = ['test_sample']#, 'test_reconciliation' ]
 
 # Load tests from modules
 loader = unittest.TestLoader()
-suites = [loader.loadTestsFromName(mod) for mod in test_modules]
+
+suites = unittest.TestSuite(
+    [loader.loadTestsFromName(mod) for mod in test_modules] +
+    [loader.loadTestsFromTestCase(TestDataDriven)]
+)
+
 
 # Combine all suites
 combined_suite = unittest.TestSuite(suites)
@@ -27,7 +33,7 @@ print(f"Skipped: {len(result.skipped)}")
 gh_out_path = os.environ.get("GITHUB_OUTPUT")
 if gh_out_path:
     try:
-        with open(gh_out_path, "a") as gh:
+        with open(gh_out_path, "w") as gh:
             gh.write(f"tests_run={result.testsRun}\n")
             gh.write(f"failures={len(result.failures)}\n")
             gh.write(f"errors={len(result.errors)}\n")

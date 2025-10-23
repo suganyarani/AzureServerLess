@@ -1,12 +1,14 @@
 import unittest
 import openpyxl
-import os
+import os,re
 import json
 from parameterized import parameterized
+from collections import defaultdict
 # from HtmlTestRunner import HTMLTestRunner
 from datetime import datetime
 import azure.functions as func
 from function_app import reconcile 
+
 
 # --- 1. Excel Data Loading Function ---
 def get_test_data(file_path, sheet_name='Sheet1'):
@@ -47,6 +49,44 @@ def get_test_data(file_path, sheet_name='Sheet1'):
         return []        
     return data
 
+def compare_json(actual, expected, path=""):
+    results = []
+
+    if isinstance(actual, dict) and isinstance(expected, dict):
+        all_keys = set(actual.keys()).union(expected.keys())
+        for key in all_keys:
+            new_path = f"{path}.{key}" if path else key
+            a_val = actual.get(key)
+            e_val = expected.get(key)
+            results.extend(compare_json(a_val, e_val, new_path))
+
+    elif isinstance(actual, list) and isinstance(expected, list):
+        max_len = max(len(actual), len(expected))
+        for i in range(max_len):
+            new_path = f"{path}[{i}]"
+            a_val = actual[i] if i < len(actual) else None
+            e_val = expected[i] if i < len(expected) else None
+            results.extend(compare_json(a_val, e_val, new_path))
+
+    else:
+        match = actual == expected
+        detail = "" if match else f"Values differ: {actual} vs {expected}"
+        results.append({
+            "field": path,
+            "actual": actual,
+            "expected": expected,
+            "match": "PASS" if match else "FAIL",
+            "details": detail
+        })
+
+    return results
+
+
+# Helper to extract top-level path (e.g., 'data[0]' from 'data[0].field_name')
+def extract_top_level_path(field_path):
+    match = re.match(r'^([^.\[]+(?:\[\d+\])?)', field_path)
+    return match.group(1) if match else field_path
+
 # --- 2. Invoke Agent API ---
 def invoke_agent(agent,input_data):  
     print(f"Invoking agent: {agent} with input_data: {input_data}")
@@ -61,6 +101,17 @@ def invoke_agent(agent,input_data):
     else:
         raise ValueError(f"Unsupported agent type: {agent}")
 
+def remove_fields(obj, suffix_to_remove="metadata"):
+    if isinstance(obj, dict):
+        return {
+            key: remove_fields(value, suffix_to_remove)
+            for key, value in obj.items()
+            if not key.endswith(suffix_to_remove)
+        }
+    elif isinstance(obj, list):
+        return [remove_fields(item, suffix_to_remove) for item in obj]
+    else:
+        return obj
 
 # --- 3. Unit Test Implementation ---
 
@@ -75,7 +126,7 @@ class TestDataDriven(unittest.TestCase):
     test_cases = get_test_data(EXCEL_FILE_PATH, SHEET_NAME)   
     
     #Convert and write to JSONL file
-    with open("testdata/test_data_sample.jsonl", "w", encoding="utf-8") as f:
+    with open("testdata/test_data.jsonl", "w", encoding="utf-8") as f:
         for agent,tool_definition,expense_type,input_data,key_field,actual_response,expected_result in test_cases:
             json_line = {"query": input_data, "context": agent, "response": actual_response, "ground_truth": expected_result}
             f.write(json.dumps(json_line, ensure_ascii=False) + "\n")
@@ -85,14 +136,46 @@ class TestDataDriven(unittest.TestCase):
     def test_agent_with_excel_data(self,agent,tool_definition,expense_type,input_data,key_field,actual_response,ground_truth):
         """Runs the test agent function against every row in the Excel data.""" 
         expected_result = json.loads(ground_truth)   
-        actual_result=json.loads(actual_response)
+        actual_result=json.loads(actual_response) 
+        
+        actual_result = remove_fields(actual_result[key_field])  
+        expected_result = remove_fields(expected_result[key_field])           
+        comparison_results = compare_json(actual_result, expected_result)
+        
+        # Filter and count FAIL matches
+        failed_results = [result for result in comparison_results if result.get("match") == "FAIL"]
+        fail_count = len(failed_results)
+
+        # Group failed fields by top-level path
+        consolidated_failures = defaultdict(list)
+
+        for entry in comparison_results:
+            if entry.get("match") == "FAIL":
+                top_path = extract_top_level_path(entry["field"])
+                consolidated_failures[top_path].append({
+                    "field": entry["field"],
+                    "actual": entry.get("actual"),
+                    "expected": entry.get("expected"),
+                    "details": entry.get("details", "Values differ")
+                })
+
+        # Convert to list of dictionaries
+        consolidated_list = [
+            {
+                "path": path,
+                "failed_fields": fields
+            }
+            for path, fields in consolidated_failures.items()
+        ]
+
+  
         # print("Expected Result:", expected_result)
         # print("Actual Result:", actual_result)            
         # Perform the assertion
-        self.assertEqual(1,1,
-            # actual_result[key_field], 
-            # expected_result[key_field], 
-            f"Agent: {agent} Expense Type: {expense_type} .Inputs {input_data} failed. Expected {expected_result}, got {actual_result}."
+        self.assertEqual(
+            fail_count, 
+            0,
+            f"Agent: {agent} Expense Type: {expense_type} .Failed Data :{consolidated_list}"
         )
 
 # --- 4. Running the Tests ---

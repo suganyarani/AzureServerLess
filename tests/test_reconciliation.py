@@ -8,18 +8,17 @@ from dotenv import load_dotenv
 load_dotenv()
 
 
-def remove_fields(obj, fields_to_remove):
+def remove_fields(obj, suffix_to_remove="metadata"):
     if isinstance(obj, dict):
         return {
-            key: remove_fields(value, fields_to_remove)
+            key: remove_fields(value, suffix_to_remove)
             for key, value in obj.items()
-            if key not in fields_to_remove
+            if not key.endswith(suffix_to_remove)
         }
     elif isinstance(obj, list):
-        return [remove_fields(item, fields_to_remove) for item in obj]
+        return [remove_fields(item, suffix_to_remove) for item in obj]
     else:
         return obj
-
 
 class TestReconciliationAgent(unittest.TestCase):
 

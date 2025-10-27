@@ -15,7 +15,7 @@ env:
   PYTHON_VERSION: '3.12' # set this to the python version to use (supports 3.6, 3.7, 3.8)
   GENAI_EVALS_CONFIG_PATH: ${{ github.workspace }}/evaluate-config.json 
   GENAI_EVALS_DATA_PATH: ${{ github.workspace }}/testdata/genai-testdata-new.jsonl
-  AGENT_DATA_DRIVEN_TEST_REPORT_PATH: ${{ github.workspace }}/Agent_DataDriven_Test_Report.html
+  AGENT_DATA_DRIVEN_TEST_REPORT_PATH: ${{ github.workspace }}/testdata/Agent_DataDriven_Test_Report.html
   RUN_PYTHON_TESTS: ${{ secrets.RUN_PYTHON_TESTS }}  # set to 'TRUE' to run python tests
   storage_account_url: ${{ secrets.AZURE_STORAGE_ACCOUNT_URL }}
   storage_account_key: ${{ secrets.AZURE_STORAGE_ACCOUNT_KEY }}

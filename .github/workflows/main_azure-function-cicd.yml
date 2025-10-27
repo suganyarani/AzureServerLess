@@ -193,9 +193,15 @@ jobs:
           SKIPPED: ${{ steps.run_tests.outputs.skipped }}
 
       
-      - name: Test URL to the job summary
-        run: echo "🔗 **Published page:** ${{ env.AGENT_DATA_DRIVEN_TEST_REPORT_PATH }} " >> "$GITHUB_STEP_SUMMARY"
-    
+      # - name: Test URL to the job summary
+      #   run: echo "🔗 **Published page:** ${{ env.AGENT_DATA_DRIVEN_TEST_REPORT_PATH }} " >> "$GITHUB_STEP_SUMMARY"
+      
+      - name: Unit Test Report
+        uses: actions/upload-artifact@v4
+        with:
+          name: html-report
+          path: ${{ env.AGENT_DATA_DRIVEN_TEST_REPORT_PATH }}
+
 
       - name: Run evaluation.py script
         id: run-eval

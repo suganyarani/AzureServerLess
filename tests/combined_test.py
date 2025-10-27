@@ -1,5 +1,7 @@
 import unittest
 import os
+from HtmlTestRunner import HTMLTestRunner
+from datetime import datetime
 from tests.test_framework import TestDataDriven
 
 # List of test modules to run
@@ -16,9 +18,18 @@ suites = unittest.TestSuite(
 
 # Combine all suites
 combined_suite = unittest.TestSuite(suites)
-
 # Run tests and capture results
-runner = unittest.TextTestRunner(resultclass=unittest.TextTestResult, verbosity=2)
+# runner = unittest.TextTestRunner(resultclass=unittest.TextTestResult, verbosity=2)
+
+timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+report_filename = f"Agent_DataDriven_Test_Report.html"
+runner = HTMLTestRunner(
+    output="testdata/",
+    report_name=report_filename.replace('.html', ''),  # report_name is for the file name base
+    report_title='Agent Data Driven Unittest Report',
+    # description='Excel Data Driven Tests for Addition Logic',
+    combine_reports=True # Ensures one single report file is created
+)
 result = runner.run(combined_suite)
 
 # Summary

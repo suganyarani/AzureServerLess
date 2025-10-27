@@ -8,6 +8,7 @@ from collections import defaultdict
 from datetime import datetime
 import azure.functions as func
 from function_app import reconcile 
+from tests.execute_reconcile import validate_field
 
 
 # --- 1. Excel Data Loading Function ---
@@ -33,22 +34,23 @@ def get_test_data(file_path, sheet_name='Sheet1'):
             # We assume the data structure: (TestName, InputA, InputB, ExpectedResult)
             
             # Note: We convert string '8' to int 8 for the test case's assertion.
-            agent,tool_definition,expense_type,input_data,key_field,expected_result = row
-            response = invoke_agent(agent, json.loads(input_data)) 
-            actual_response = response.get_body().decode()
-            # Basic validation/type conversion (adjust as per your actual data)
-            try:
-                data.append((agent,tool_definition,expense_type,input_data,key_field,actual_response,expected_result))
-            except ValueError:
-                print(f"Skipping row with invalid numeric data: {row}")
-                continue # Skip rows with non-integer data if int is expected
+            scenario_id,agent,tool_definition,scenario,scenario_prompt,test_case_scenario,input_data,key_field,ground_truth = row
+            if input_data is not None:
+                response = invoke_agent(agent, json.loads(input_data)) 
+                actual_result = response.get_body().decode()
+                # Basic validation/type conversion (adjust as per your actual data)
+                try:
+                    data.append((scenario_id,agent,tool_definition,scenario,scenario_prompt,test_case_scenario,input_data,key_field,actual_result,ground_truth))
+                except ValueError:
+                    print(f"Skipping row with invalid numeric data: {row}")
+                    continue # Skip rows with non-integer data if int is expected
             
     except Exception as e:
         print(f"Error reading Excel data: {e}")
         # Return an empty list or raise the exception, depending on your error handling
         return []        
     return data
-
+"""
 def compare_json(actual, expected, path=""):
     results = []
 
@@ -84,9 +86,9 @@ def compare_json(actual, expected, path=""):
 
 # Helper to extract top-level path (e.g., 'data[0]' from 'data[0].field_name')
 def extract_top_level_path(field_path):
-    match = re.match(r'^([^.\[]+(?:\[\d+\])?)', field_path)
+    match = re.match(r'^([^.\\[]+(?:\\[\\d+\\])?)', field_path)
     return match.group(1) if match else field_path
-
+"""
 # --- 2. Invoke Agent API ---
 def invoke_agent(agent,input_data):  
     print(f"Invoking agent: {agent} with input_data: {input_data}")
@@ -126,22 +128,25 @@ class TestDataDriven(unittest.TestCase):
     test_cases = get_test_data(EXCEL_FILE_PATH, SHEET_NAME)   
     
     #Convert and write to JSONL file
-    with open("testdata/test_data.jsonl", "w", encoding="utf-8") as f:
-        for agent,tool_definition,expense_type,input_data,key_field,actual_response,expected_result in test_cases:
-            json_line = {"query": input_data, "context": agent, "response": actual_response, "ground_truth": expected_result}
-            f.write(json.dumps(json_line, ensure_ascii=False) + "\n")
+    # with open("testdata/test_data.jsonl", "w", encoding="utf-8") as f:
+    #     for scenarion_id,agent,tool_definition,scenario,scenario_prompt,test_case_scenario,input_data,key_field,actual_result,ground_truth in test_cases:
+    #         json_line = {"query": input_data, "context": agent, "response": actual_response, "ground_truth": expected_result}
+    #         f.write(json.dumps(json_line, ensure_ascii=False) + "\n")
 
     # print(test_cases)
     @parameterized.expand(test_cases)
-    def test_agent_with_excel_data(self,agent,tool_definition,expense_type,input_data,key_field,actual_response,ground_truth):
+    def test_scenario(self,scenario_id,agent,tool_definition,scenario,scenario_prompt,test_case_scenario,input_data,key_field,actual_result,ground_truth):
         """Runs the test agent function against every row in the Excel data.""" 
-        expected_result = json.loads(ground_truth)   
-        actual_result=json.loads(actual_response) 
-        
-        actual_result = remove_fields(actual_result[key_field])  
-        expected_result = remove_fields(expected_result[key_field])           
-        comparison_results = compare_json(actual_result, expected_result)
-        
+        input_record = json.loads(input_data)   
+        input_record = remove_fields(input_record)
+        extracted_data= input_record.get("extracted_data",{})
+        expense_details= input_record.get("expense_details",{})  
+        actual_result = json.loads(actual_result)
+        actual_result = remove_fields(actual_result)
+        reconciled_data = actual_result.get("reconciled_data", {})
+        # comparison_results = compare_json(actual_result, expected_result)
+        response= validate_field(scenario_prompt, extracted_data, expense_details, ground_truth, reconciled_data)
+        """
         # Filter and count FAIL matches
         failed_results = [result for result in comparison_results if result.get("match") == "FAIL"]
         fail_count = len(failed_results)
@@ -167,16 +172,18 @@ class TestDataDriven(unittest.TestCase):
             }
             for path, fields in consolidated_failures.items()
         ]
-
+        """
   
         # print("Expected Result:", expected_result)
         # print("Actual Result:", actual_result)            
         # Perform the assertion
         self.assertEqual(
-            fail_count, 
-            0,
-            f"Agent: {agent} Expense Type: {expense_type} .Failed Data :{consolidated_list}"
+            response.Result.upper(), 
+            "PASS",
+            f"<b>Agent:</b> {agent} <br> <b>Scenario ID:</b> {scenario_id} <br> <b>Scenario:</b> {scenario}<br> <b>Testcase Scenario:</b> {test_case_scenario}<br> <b>Response:</b> {response.Reason}"
         )
+        if response.Result.upper() == "PASS":
+            print(f"<b>Agent:</b> {agent} <br> <b>Scenario ID:</b> {scenario_id} <br> <b>Scenario:</b> {scenario}<br> <b>Testcase Scenario:</b> {test_case_scenario}<br> <b>Response:</b> {response.Reason}")
 
 # --- 4. Running the Tests ---
 
@@ -224,16 +231,26 @@ class TestDataDriven(unittest.TestCase):
     # 3. Configure the HTMLTestRunner
     # We use HtmlTestRunner from the 'html-testrunner' package
     # print(f"Generating HTML report at: {report_path}")
-    runner = HTMLTestRunner(
-        output=report_dir, 
-        report_name=report_filename.replace('.html', ''),  # report_name is for the file name base
-        report_title='Agent Data Driven Unittest Report',
-        # description='Excel Data Driven Tests for Addition Logic',
-        combine_reports=True # Ensures one single report file is created
-    )
-    runner.run(suite)
-  
-    
+    """
+# runner = unittest.TextTestRunner()
+# timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+# report_filename = f"Agent_DataDriven_Test_Report_{timestamp}.html"
+# # result = runner.run(unittest.TestLoader().loadTestsFromTestCase(TestDataDriven))    
+# runner = HTMLTestRunner(
+#     output="./",
+#     report_name=report_filename.replace('.html', ''),  # report_name is for the file name base
+#     report_title='Agent Data Driven Unittest Report',
+#     # description='Excel Data Driven Tests for Addition Logic',
+#     combine_reports=True # Ensures one single report file is created
+# )
+# result=runner.run(unittest.TestLoader().loadTestsFromTestCase(TestDataDriven))
+# print("\n--- Test Summary ---")
+# print(f"Total tests run: {result.testsRun}")
+# print(f"Failures: {len(result.failures)}")
+# print(f"Errors: {len(result.errors)}")
+# print(f"Skipped: {len(result.skipped)}")
+ 
+"""
     # runner = unittest.TextTestRunner()
     # result = runner.run(unittest.TestLoader().loadTestsFromTestCase(TestDataDriven))
     # print(result)

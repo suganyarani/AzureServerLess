@@ -130,7 +130,7 @@ class TestDataDriven(unittest.TestCase):
     #Convert and write to JSONL file
     # with open("testdata/test_data.jsonl", "w", encoding="utf-8") as f:
     #     for scenarion_id,agent,tool_definition,scenario,scenario_prompt,test_case_scenario,input_data,key_field,actual_result,ground_truth in test_cases:
-    #         json_line = {"query": input_data, "context": agent, "response": actual_response, "ground_truth": expected_result}
+    #         json_line = {"query": input_data, "context": agent, "response": actual_result, "ground_truth": ground_truth}
     #         f.write(json.dumps(json_line, ensure_ascii=False) + "\n")
 
     # print(test_cases)

@@ -200,7 +200,7 @@ jobs:
 
       
       - name: Add link to summary
-        run: echo "[View Report](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id}}         
+        run: echo "[View Report](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id}}"         
 
 
       - name: Run evaluation.py script

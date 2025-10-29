@@ -7,33 +7,23 @@ from azure.identity import DefaultAzureCredential
 from azure.ai.evaluation import (
     evaluate, AzureOpenAIModelConfiguration,
     ToolCallAccuracyEvaluator,
-    TaskAdherenceEvaluator,
+    # TaskAdherenceEvaluator,
     RelevanceEvaluator,
-    CoherenceEvaluator,
-    ResponseCompletenessEvaluator,
-    QAEvaluator,
-    SimilarityEvaluator,
-    F1ScoreEvaluator,
-    ViolenceEvaluator,
-    SexualEvaluator,
-    SelfHarmEvaluator,
-    HateUnfairnessEvaluator,
-    ProtectedMaterialEvaluator,
-    ContentSafetyEvaluator,
-    UngroundedAttributesEvaluator,
-    CodeVulnerabilityEvaluator,
-    IndirectAttackEvaluator
-    
-    # GroundednessEvaluator, 
-    # F1ScoreEvaluator, RougeScoreEvaluator,
-    # ViolenceEvaluator,
+    # CoherenceEvaluator,
+    # ResponseCompletenessEvaluator,
+    # QAEvaluator,
     # SimilarityEvaluator,
+    F1ScoreEvaluator,
+    # ViolenceEvaluator,
     # SexualEvaluator,
     # SelfHarmEvaluator,
-    # RetrievalEvaluator,   
     # HateUnfairnessEvaluator,
-    # GleuScoreEvaluator,
-    # F1ScoreEvaluator
+    # ProtectedMaterialEvaluator,
+    # ContentSafetyEvaluator,
+    # UngroundedAttributesEvaluator,
+    # CodeVulnerabilityEvaluator,
+    # IndirectAttackEvaluator
+    
 )
 from dotenv import load_dotenv
 load_dotenv()
@@ -61,26 +51,26 @@ def main(arg):
         # Initialize evaluators     
           
         # tool_call_accuracy_evaluator = ToolCallAccuracyEvaluator(model_config=model_config)
-        task_adherence_evaluator = TaskAdherenceEvaluator(model_config=model_config)
+        # task_adherence_evaluator = TaskAdherenceEvaluator(model_config=model_config)
         relevance_evaluator = RelevanceEvaluator(model_config=model_config)
-        coherence_evaluator = CoherenceEvaluator(model_config=model_config)
-        response_completeness_evaluator = ResponseCompletenessEvaluator(model_config=model_config)
-        qa_evaluator = QAEvaluator(model_config=model_config)
-        similarity_evaluator = SimilarityEvaluator(model_config=model_config)
+        # coherence_evaluator = CoherenceEvaluator(model_config=model_config)
+        # response_completeness_evaluator = ResponseCompletenessEvaluator(model_config=model_config)
+        # qa_evaluator = QAEvaluator(model_config=model_config)
+        # similarity_evaluator = SimilarityEvaluator(model_config=model_config)
         # groundedness_evaluator = GroundednessEvaluator(model_config=model_config)
         f1_evaluator = F1ScoreEvaluator()
         # rouge_evaluator= RougeScoreEvaluator(rouge_type="rouge1")
-        violence_evaluator = ViolenceEvaluator(credential=cred,azure_ai_project=azure_ai_project)        
-        sexual_evaluator = SexualEvaluator(credential=cred,azure_ai_project=azure_ai_project)
-        self_harm_evaluator = SelfHarmEvaluator(credential=cred,azure_ai_project=azure_ai_project)
-        # retrieval_evaluator = RetrievalEvaluator(model_config=model_config)
-        hate_unfairness_evaluator = HateUnfairnessEvaluator(credential=cred,azure_ai_project=azure_ai_project)
+        # violence_evaluator = ViolenceEvaluator(credential=cred,azure_ai_project=azure_ai_project)        
+        # sexual_evaluator = SexualEvaluator(credential=cred,azure_ai_project=azure_ai_project)
+        # self_harm_evaluator = SelfHarmEvaluator(credential=cred,azure_ai_project=azure_ai_project)
+        # # retrieval_evaluator = RetrievalEvaluator(model_config=model_config)
+        # hate_unfairness_evaluator = HateUnfairnessEvaluator(credential=cred,azure_ai_project=azure_ai_project)
         # gleu_score_evaluator = GleuScoreEvaluator()
-        protected_material_evaluator = ProtectedMaterialEvaluator(credential=cred,azure_ai_project=azure_ai_project)
-        content_safety_evaluator = ContentSafetyEvaluator(credential=cred,azure_ai_project=azure_ai_project)
-        ungrounded_attributes_evaluator = UngroundedAttributesEvaluator(credential=cred,azure_ai_project=azure_ai_project)
-        code_vulnerability_evaluator = CodeVulnerabilityEvaluator(credential=cred,azure_ai_project=azure_ai_project)    
-        indirect_attack_evaluator = IndirectAttackEvaluator(credential=cred,azure_ai_project=azure_ai_project)
+        # protected_material_evaluator = ProtectedMaterialEvaluator(credential=cred,azure_ai_project=azure_ai_project)
+        # content_safety_evaluator = ContentSafetyEvaluator(credential=cred,azure_ai_project=azure_ai_project)
+        # ungrounded_attributes_evaluator = UngroundedAttributesEvaluator(credential=cred,azure_ai_project=azure_ai_project)
+        # code_vulnerability_evaluator = CodeVulnerabilityEvaluator(credential=cred,azure_ai_project=azure_ai_project)    
+        # indirect_attack_evaluator = IndirectAttackEvaluator(credential=cred,azure_ai_project=azure_ai_project)
            
         
         now = datetime.now()
@@ -106,26 +96,26 @@ def main(arg):
                 data=arg,
                 task_type="qa", # Set the task type
                 evaluators={
-                    "task_adherence": task_adherence_evaluator,
+                    # "task_adherence": task_adherence_evaluator,
                     "relevance": relevance_evaluator,
-                    "coherence": coherence_evaluator,
-                    "response_completeness": response_completeness_evaluator,
-                    "qa_evaluator": qa_evaluator, 
-                    "similarity":similarity_evaluator,
+                    # "coherence": coherence_evaluator,
+                    # "response_completeness": response_completeness_evaluator,
+                    # "qa_evaluator": qa_evaluator, 
+                    # "similarity":similarity_evaluator,
                     # "groundedness": groundedness_evaluator,
                     "f1_score": f1_evaluator,
                     # "rouge_score":rouge_evaluator,
-                    "violence": violence_evaluator,                   
-                    "sexual": sexual_evaluator,
-                    "self_harm": self_harm_evaluator,
-                    # "retrieval": retrieval_evaluator,
-                    "hate_unfairness": hate_unfairness_evaluator,
-                    # "gleu_score": gleu_score_evaluator,
-                    "protected_material": protected_material_evaluator,
-                    "content_safety": content_safety_evaluator, 
-                    "ungrounded_attributes": ungrounded_attributes_evaluator,
-                    "code_vulnerability": code_vulnerability_evaluator,
-                    "indirect_attack": indirect_attack_evaluator
+                    # "violence": violence_evaluator,                   
+                    # "sexual": sexual_evaluator,
+                    # "self_harm": self_harm_evaluator,
+                    # # "retrieval": retrieval_evaluator,
+                    # "hate_unfairness": hate_unfairness_evaluator,
+                    # # "gleu_score": gleu_score_evaluator,
+                    # "protected_material": protected_material_evaluator,
+                    # "content_safety": content_safety_evaluator, 
+                    # "ungrounded_attributes": ungrounded_attributes_evaluator,
+                    # "code_vulnerability": code_vulnerability_evaluator,
+                    # "indirect_attack": indirect_attack_evaluator
             },
             # CRITICAL: This ties the local run to your Azure AI project for logging
             azure_ai_project=os.environ.get("PROJECT_ENDPOINT"), 

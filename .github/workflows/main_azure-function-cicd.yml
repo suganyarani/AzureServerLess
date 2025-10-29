@@ -199,8 +199,8 @@ jobs:
           path: ${{ env.AGENT_DATA_DRIVEN_TEST_REPORT_PATH }}
 
       
-      - name: Add link to summary
-        run: echo "[View Report](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id}}"         
+      # - name: Add link to summary
+      #   run: echo "[View Report](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id}}"         
 
 
       - name: Run evaluation.py script

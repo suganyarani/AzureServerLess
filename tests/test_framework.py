@@ -7,8 +7,8 @@ from collections import defaultdict
 # from HtmlTestRunner import HTMLTestRunner
 from datetime import datetime
 import azure.functions as func
-from function_app import reconcile 
-from tests.execute_reconcile import validate_field
+from function_app import reconcile,headervalidation
+from tests.execute_testcase import validate_field
 
 
 # --- 1. Excel Data Loading Function ---
@@ -36,8 +36,8 @@ def get_test_data(file_path, sheet_name='Sheet1'):
             # Note: We convert string '8' to int 8 for the test case's assertion.
             scenario_id,agent,tool_definition,scenario,scenario_prompt,test_case_scenario,input_data,key_field,ground_truth = row
             if input_data is not None:
-                response = invoke_agent(agent, json.loads(input_data)) 
-                actual_result = response.get_body().decode()
+                response = invoke_agent(agent, json.loads(input_data))               
+                actual_result = response.get_body().decode()                
                 # Basic validation/type conversion (adjust as per your actual data)
                 try:
                     data.append((scenario_id,agent,tool_definition,scenario,scenario_prompt,test_case_scenario,input_data,key_field,actual_result,ground_truth))
@@ -100,20 +100,16 @@ def invoke_agent(agent,input_data):
                 body=json.dumps(input_data).encode("utf-8")                 # <-- REQUIRED, bytes even for GET
             )
         return reconcile(req)
+    elif agent.upper() == "HEADER VALIDATION":
+        req = func.HttpRequest(
+                method="POST",
+                url="/api/headervalidation",           
+                headers={},
+                body=json.dumps(input_data).encode("utf-8")                 # <-- REQUIRED, bytes even for GET
+            )
+        return headervalidation(req)
     else:
         raise ValueError(f"Unsupported agent type: {agent}")
-
-def remove_fields(obj, suffix_to_remove="metadata"):
-    if isinstance(obj, dict):
-        return {
-            key: remove_fields(value, suffix_to_remove)
-            for key, value in obj.items()
-            if not key.endswith(suffix_to_remove)
-        }
-    elif isinstance(obj, list):
-        return [remove_fields(item, suffix_to_remove) for item in obj]
-    else:
-        return obj
 
 # --- 3. Unit Test Implementation ---
 
@@ -128,24 +124,19 @@ class TestDataDriven(unittest.TestCase):
     test_cases = get_test_data(EXCEL_FILE_PATH, SHEET_NAME)   
     
     #Convert and write to JSONL file
-    # with open("testdata/test_data_gt.jsonl", "w", encoding="utf-8") as f:
+    # with open("testdata/test_data_gt2.jsonl", "w", encoding="utf-8") as f:
     #     for scenarion_id,agent,tool_definition,scenario,scenario_prompt,test_case_scenario,input_data,key_field,actual_result,ground_truth in test_cases:
-    #         json_line = {"query": input_data, "context": scenario, "response": actual_result, "ground_truth": ground_truth}
+    #         json_line = {"query": f"{input_data}", "context": scenario, "response": actual_result, "ground_truth": actual_result}
     #         f.write(json.dumps(json_line, ensure_ascii=False) + "\n")
 
     # print(test_cases)
     @parameterized.expand(test_cases)
     def test_scenario(self,scenario_id,agent,tool_definition,scenario,scenario_prompt,test_case_scenario,input_data,key_field,actual_result,ground_truth):
         """Runs the test agent function against every row in the Excel data.""" 
-        input_record = json.loads(input_data)   
-        input_record = remove_fields(input_record)
-        extracted_data= input_record.get("extracted_data",{})
-        expense_details= input_record.get("expense_details",{})  
-        actual_result = json.loads(actual_result)
-        actual_result = remove_fields(actual_result)
-        reconciled_data = actual_result.get("reconciled_data", {})
+      
+        input_record = json.loads(input_data)
         # comparison_results = compare_json(actual_result, expected_result)
-        response= validate_field(scenario_prompt, extracted_data, expense_details, ground_truth, reconciled_data)
+        response= validate_field(agent,scenario_prompt, input_record, actual_result, ground_truth)
         """
         # Filter and count FAIL matches
         failed_results = [result for result in comparison_results if result.get("match") == "FAIL"]

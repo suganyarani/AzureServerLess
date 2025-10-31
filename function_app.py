@@ -3,6 +3,7 @@ import logging
 import json
 from core.model import AgentState
 from core.datareconciliation import data_reconciliation
+from core.headervalidation import headerdata_validation
 
 app = func.FunctionApp(http_auth_level=func.AuthLevel.ANONYMOUS)
 
@@ -52,3 +53,29 @@ def reconcile(req: func.HttpRequest) -> func.HttpResponse:
              "Please pass valid JSON object in the request body",
              status_code=400
         )
+        
+@app.route(route="headervalidation", methods=["POST"])
+def headervalidation(req: func.HttpRequest) -> func.HttpResponse:
+    logging.info('Reconciliation Function Invoked')
+    try:        
+        request = req.get_json()
+        if request:
+            try:
+                agent_state = AgentState(**request)
+                result = headerdata_validation(agent_state)   
+                return func.HttpResponse(
+                    json.dumps(result),
+                    mimetype="application/json",
+                    status_code=201 # 201 Created is the standard status for successful POST requests
+                )
+            except Exception as e:
+                return func.HttpResponse(
+                    "Exception due to {}".format(e),
+                    mimetype="application/json",
+                    status_code=400 # 201 Created is the standard status for successful POST requests
+                )
+    except ValueError:
+        return func.HttpResponse(
+             "Please pass valid JSON object in the request body",
+             status_code=400
+        )        

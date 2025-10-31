@@ -41,3 +41,5 @@ pandas
 parameterized
 openpyxl
 jinja2
+langchain-classic
+python-tools

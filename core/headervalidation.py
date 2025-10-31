@@ -4,17 +4,19 @@ from langchain_core.output_parsers import PydanticOutputParser #sudha
 from langchain_classic.output_parsers.fix import OutputFixingParser #sudha
 from langchain_community.document_loaders import AzureAIDocumentIntelligenceLoader
 from langgraph.prebuilt import create_react_agent
-# from langchain.agents import create_agent
+# from langchain_classic.agents.react.agent import create_react_agent #sudha
 from langchain_core.prompts import PromptTemplate
 from azure.storage.blob import BlobServiceClient
-from model import AgentState
 from pydantic import BaseModel,Field
 from langgraph.graph import StateGraph,END
 from typing import Optional,List
 from dotenv import load_dotenv
-from data_access import insert_data,get_data
 import logging,os,uuid,datetime
-import tools
+from core import tools
+from core.model import AgentState
+from core.data_access import insert_data,get_data
+import traceback
+import json
 
 load_dotenv()
 
@@ -34,14 +36,10 @@ receipt_container_name = "prepayaudit-receipts"
 
 # === Initialize Clients ===
 llm = AzureChatOpenAI(
-    # openai_api_key=AZURE_OPENAI_API_KEY,
-    # azure_endpoint=AZURE_OPENAI_ENDPOINT,
-    # openai_api_version=AZURE_OPENAI_API_VERSION,
-    # azure_deployment=AZURE_OPENAI_DEPLOYMENT_NAME,
-    api_version="2024-12-01-preview",
-    azure_endpoint="https://107094-ai-aiservices-591156264.cognitiveservices.azure.com/",
-    api_key="3283cd287ef04f5dac6321bcdf07c7d7",
-    model="kaarthipocgpt4o",#"kaarthigpt41"
+    openai_api_key=AZURE_OPENAI_API_KEY,
+    azure_endpoint=AZURE_OPENAI_ENDPOINT,
+    openai_api_version=AZURE_OPENAI_API_VERSION,
+    azure_deployment=AZURE_OPENAI_DEPLOYMENT_NAME,
     temperature=0,
     # max_tokens=1000,
 )
@@ -59,33 +57,34 @@ class HeaderValidation(BaseModel):
     reason: str = Field(..., description="The reasoning for the result should be elaborate and meaningful.")
     # approvecode: Optional[str] = Field(None,description="Applicable approval code for this rule")    
     sendbackcode: Optional[str] = Field(None,description="Applicable send back code for this rule")
+    
+    # Helper method to convert the instance to a dictionary
+    def to_dict(self):
+        # We use vars(self) to get a dictionary of all instance attributes
+        return vars(self)
 
 class HeaderValidationList(BaseModel):
     """A list of generated rules."""
     rules: List[HeaderValidation] = Field(..., description="The list of rule execution result")
 
+
 def read_from_blob(blob_name,container_name):
-    try:   
+    try:  
         blob_client = blob_service_client.get_blob_client(container=container_name,blob=blob_name)    
-        filename =os.path.basename(blob_name)
-        print("filename is :",filename)
+        filename =os.path.basename(blob_name)       
         # # Download the blob to a local file
         blob_file_path = f"tmp/{filename}" #sudha
         # download_file_path = f"./{blob_name}"
-       
-        logging.INFO("\nDownloading blob to \n\t" + blob_file_path)
+        print("\nDownloading blob to \n\t" + blob_file_path)
         with open(blob_file_path, "wb") as download_file:
+            print("blob client is :",blob_client)
             try:
-                stream = blob_client.download_blob()
-                blob_data = stream.readall()
-                download_file.write(blob_data)
+                download_file.write(blob_client.download_blob().readall())
             except Exception as e:
-                print(f"Error in downloading blob data: {e}")    
-            # download_file.write(blob_client.download_blob().readall())
-        
-        return blob_file_path
+                print(f"Error in downloading blob data: {e}")
     except Exception as e:
         logging.error(f"Error in reading blob {blob_name} from container {container_name}: {e}")
+    return blob_file_path    
 
 def extract_filename_exptype(state: AgentState) -> AgentState:
     """
@@ -114,7 +113,7 @@ def get_reportdata_node(state:AgentState)->AgentState:
         report_id =state.report_id       
         params ={"report_id":report_id}
         result =get_data('report',params)
-        print("result is :",result)
+        # print("result is :",result)
         state.report_details = result
         # Get receipt at report level
         print("outside report receipt fetch")
@@ -191,12 +190,12 @@ def validate_headerdata_node(state: AgentState) -> AgentState:
         )
     
     # Initialize the agent executor
-    agent_executor = create_react_agent(llm, api_tools, prompt=formatted_prompt)
-
+    agent_executor = create_react_agent(llm, api_tools, prompt=formatted_prompt)    
     try:
         # The agent_executor.invoke will return a dictionary which typically contains the 'output'
         # or 'agent_outcome' that is a string, but can also contain tool_calls.
         # with get_openai_callback() as cb:
+        print("Invoking agent executor with prompt:")
         agent_raw_response:HeaderValidationList= agent_executor.invoke({"report_data":state.report_details})
                         # state.token_state.total_tokens += cb.total_tokens
                         # state.token_state.completion_tokens += cb.completion_tokens
@@ -256,8 +255,8 @@ def headervalidation_build_graph():
     header_workflow.set_entry_point("extract_filename_exptype")
     header_workflow.add_edge("extract_filename_exptype","get_reportdata")
     header_workflow.add_edge("get_reportdata","validate_headerdata")
-    header_workflow.add_edge("validate_headerdata","save_headerdata")
-    header_workflow.add_edge("save_headerdata",END)
+    header_workflow.add_edge("validate_headerdata",END)#"save_headerdata")
+    # header_workflow.add_edge("save_headerdata",END)
     # 5. Compile the Workflow: This prepares the graph for execution.
     header_validation = header_workflow.compile()
     return header_validation
@@ -266,24 +265,34 @@ header_validation = headervalidation_build_graph()
 import json
 def validate_headerdata(state:AgentState)->AgentState:
 # def validate_headerdata(expense_id):
-    logging.info("--- Starting rule summary Process ---")
-    
-    
+    logging.info("--- Starting rule summary Process ---") 
     # initial_state = AgentState(  
     #         expense_id = expense_id            
     #         )
     try:
         final_state = header_validation.invoke(state) 
         # final_state = header_validation.invoke(initial_state)       
-        logging.info(f"Results: {final_state}")
-        print(json.loads(final_state))
+        logging.info(f"Results: {final_state}")    
+        print(final_state)    
+         # Use indent=4 for pretty-printing
         return final_state
 
     except Exception as e:
         logging.error(f"Error in invoke: {e}")
+        traceback.print_exc() 
         return state
+    
+def headerdata_validation(state:AgentState)->AgentState:
+    final_state = validate_headerdata(state) 
+    response=dict()
+    response["expense_type"] = final_state["expense_type"]   
+    response["report_data"] =final_state["report_details"]
+    response["receipt_data"]=final_state["expense_receipt_input"]
+    header_validation_data = final_state["header_validation"]
+    response["header_validation_data"] = [validation.to_dict() for validation in header_validation_data]   
+    return response
 
-
+"""
 if __name__ == "__main__":
       # 1BED8ECE70AA2C41962146B20730BD40 --airfare
 # 7635BF521DB19E419E9DE80A659214C7--hotel --donereconciliation  t be redone
@@ -308,8 +317,23 @@ if __name__ == "__main__":
     # F31D485B6B6CA04F8F8CD4C453069DC8 --airfare
     # 55DBD68A6F6E7E44861CA5B3D6259937 --Individual meals -- receipt not in correct format
     # 8DA54C2AC119ED47A541806FE3D92CE3 --hotel
-    expense_id ='7635BF521DB19E419E9DE80A659214C7'
+    expense_id ='7635BF521DB19E419E9DE80A659214C8'
     state = AgentState(  
             expense_id = expense_id            
             )
-    validate_headerdata(state)
+    response = headerdata_validation(state)
+    print(json.dumps(response))
+    # final_state = validate_headerdata(state)
+    # print("xxx",final_state)
+    # expense_type=getattr(final_state, "expense_type", final_state["expense_type"])    
+    # report_data =getattr(final_state,"report_details", final_state["report_details"])
+    # receipt_data = getattr(final_state,"expense_receipt_input",final_state["expense_receipt_input"]) 
+    # header_validation_data= getattr(final_state,"header_validation",final_state["header_validation"]) 
+    # print("\nexpense_type:\n",expense_type)
+    # print("\nreport_data:\n",report_data)
+    # print("\nreceipt_data:\n",receipt_data)
+    # print("\nheader_validation:\n",header_validation_data)
+    
+    # list_of_dicts = [validation.to_dict() for validation in header_validation_data]        
+    # print(json.dumps(list_of_dicts, indent=4))
+"""

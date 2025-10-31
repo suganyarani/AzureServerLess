@@ -163,6 +163,7 @@ jobs:
       
       - name: Run unit tests (agents)
         id: run_tests
+        if: ${{ env.RUN_PYTHON_TESTS == 'TRUE' }}
         run: |
             # If the build job uploaded a venv, activate it and run tests immediately.
             # (Make sure your build job uploaded 'venv/' as an artifact.)
@@ -176,7 +177,8 @@ jobs:
             exit 0
             fi
             
-      - name: Publish short test summary to Actions tab        
+      - name: Publish short test summary to Actions tab  
+        if: ${{ env.RUN_PYTHON_TESTS == 'TRUE' }}      
         run: |
           echo "## 🧪 Unit Test Summary" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
@@ -193,6 +195,7 @@ jobs:
           SKIPPED: ${{ steps.run_tests.outputs.skipped }}
       
       - name: Unit Test Report
+        if: ${{ env.RUN_PYTHON_TESTS == 'TRUE' }}
         uses: actions/upload-artifact@v4
         with:
           name: html-report
@@ -234,6 +237,7 @@ jobs:
 
 
       - name: Upload full logs (optional)
+        if: ${{ env.RUN_PYTHON_TESTS == 'TRUE' }}
         uses: actions/upload-artifact@v4
         with:
           name: unittest-logs

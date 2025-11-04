@@ -105,7 +105,6 @@ jobs:
           rm release.zip
       
       - name: Login to Azure
-        if: ${{ env.RUN_PYTHON_TESTS == 'TRUE' }}
         uses: azure/login@v2
         with:
           client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_9A0E4792C5E44D14A97D3A37E1CE4D3B }}

@@ -1,9 +1,6 @@
 import azure.functions as func
 import logging
 import json
-from core.model import AgentState
-from core.datareconciliation import data_reconciliation
-from core.headervalidation import headerdata_validation
 
 app = func.FunctionApp(http_auth_level=func.AuthLevel.ANONYMOUS)
 
@@ -30,6 +27,9 @@ def health_check(req: func.HttpRequest) -> func.HttpResponse:
 
 @app.route(route="reconcile", methods=["POST"])
 def reconcile(req: func.HttpRequest) -> func.HttpResponse:
+    from core.model import AgentState
+    from core.datareconciliation import data_reconciliation
+    from core.headervalidation import headerdata_validation
     logging.info('Reconciliation Function Invoked')
     try:        
         request = req.get_json()
@@ -56,6 +56,9 @@ def reconcile(req: func.HttpRequest) -> func.HttpResponse:
         
 @app.route(route="headervalidation", methods=["POST"])
 def headervalidation(req: func.HttpRequest) -> func.HttpResponse:
+    from core.model import AgentState
+    from core.datareconciliation import data_reconciliation
+    from core.headervalidation import headerdata_validation
     logging.info('Reconciliation Function Invoked')
     try:        
         request = req.get_json()

@@ -18,8 +18,7 @@ langchain-core
 langchain-openai        
 langchain-text-splitters
 langgraph               
-langgraph-checkpoint    
-pydantic                
+langgraph-checkpoint 
 pydantic-settings       
 pydantic_core           
 Pygments                
